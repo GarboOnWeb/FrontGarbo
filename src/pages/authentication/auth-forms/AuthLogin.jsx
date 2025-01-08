@@ -73,9 +73,9 @@ export default function AuthLogin({ isDemo = false }) {
         // Redirecionar para o dashboard ou outra página específica
         console.log('Login bem-sucedido:', data);
         if (data.role === 'admin') {
-            window.location.href = '/free/dashboard/default';
+            window.location.href = '/garbo';
         } else {
-            window.location.href = '/free/dashboard/default';
+            window.location.href = '/garbo';
         }
     } else {
         // Exibir erro retornado pela API

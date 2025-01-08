@@ -27,7 +27,6 @@ import AnimateButton from 'components/@extended/AnimateButton';
 // assets
 import EyeOutlined from '@ant-design/icons/EyeOutlined';
 import EyeInvisibleOutlined from '@ant-design/icons/EyeInvisibleOutlined';
-import FirebaseSocial from './FirebaseSocial';
 
 // ============================|| JWT - LOGIN ||============================ //
 
@@ -35,6 +34,7 @@ export default function AuthLogin({ isDemo = false }) {
   const [checked, setChecked] = React.useState(false);
 
   const [showPassword, setShowPassword] = React.useState(false);
+
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
@@ -43,18 +43,69 @@ export default function AuthLogin({ isDemo = false }) {
     event.preventDefault();
   };
 
+
+  const handleLogin = async (values, setSubmitting, setErrors) => {
+    try {
+      // Substitua pela URL da sua API de login
+      const response = await fetch('http://localhost:8080/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Salvar o token e outros dados no localStorage
+        if (data.token) {
+            localStorage.setItem('authToken', data.token); // Salva o token
+            localStorage.setItem('userRole', data.role);   // Salva a role (admin, user, etc.)
+            localStorage.setItem('userSetor', data.setor); // Salva o setor
+        } else {
+            console.warn('Token não encontrado na resposta');
+        }
+    
+        // Redirecionar para o dashboard ou outra página específica
+        console.log('Login bem-sucedido:', data);
+        if (data.role === 'admin') {
+            window.location.href = '/free/dashboard/default';
+        } else {
+            window.location.href = '/free/dashboard/default';
+        }
+    } else {
+        // Exibir erro retornado pela API
+        setErrors({ submit: data.message || 'Erro ao fazer login' });
+    }
+    } catch (error) {
+      console.error('Erro na autenticação:', error);
+      setErrors({ submit: 'Erro ao conectar-se à API. Tente novamente.' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+
   return (
     <>
       <Formik
         initialValues={{
           email: '',
           password: '',
-          submit: null
+          submit: null,
         }}
         validationSchema={Yup.object().shape({
           email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-          password: Yup.string().max(255).required('Password is required')
+          password: Yup.string().max(255).required('Password is required'),
         })}
+        onSubmit={(values, { setSubmitting, setErrors }) => {
+          setSubmitting(true);
+          handleLogin(values, setSubmitting, setErrors);
+        }}
       >
         {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
           <form noValidate onSubmit={handleSubmit}>
@@ -86,7 +137,7 @@ export default function AuthLogin({ isDemo = false }) {
                   <OutlinedInput
                     fullWidth
                     error={Boolean(touched.password && errors.password)}
-                    id="-password-login"
+                    id="password-login"
                     type={showPassword ? 'text' : 'password'}
                     value={values.password}
                     name="password"
@@ -115,7 +166,7 @@ export default function AuthLogin({ isDemo = false }) {
                 )}
               </Grid>
 
-              <Grid item xs={12} sx={{ mt: -1 }}>
+              <Grid item xs={12}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
                   <FormControlLabel
                     control={
@@ -145,14 +196,6 @@ export default function AuthLogin({ isDemo = false }) {
                     Login
                   </Button>
                 </AnimateButton>
-              </Grid>
-              <Grid item xs={12}>
-                <Divider>
-                  <Typography variant="caption"> Login with</Typography>
-                </Divider>
-              </Grid>
-              <Grid item xs={12}>
-                <FirebaseSocial />
               </Grid>
             </Grid>
           </form>

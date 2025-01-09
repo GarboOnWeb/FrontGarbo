@@ -49,8 +49,54 @@ const getContasUser = async (params) => {
   }
 };
 
+const updateStatus = async (contaId, status) => {
+  const API_URL = `${API_URL_P}/conta/atualizar/status`;
+
+  try {
+    const token = getAuthToken();
+    const response = await axios.patch(
+      API_URL,
+      { contaId, status }, // Corpo da requisição com contaId e status
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`, // Inclui o token no cabeçalho
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+
+const getAllContas = async (params) => {
+  const API_URL = `${API_URL_P}/conta/`;
+
+  try {
+    const token = getAuthToken(); // Recupera o token
+    console.log(params)
+    const response = await axios.get(API_URL, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`, // Adiciona o token no cabeçalho
+      },
+      params, // Adiciona os parâmetros na URL
+    });
+    console.log("Passou aqui");
+    console.log(response);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
 
 // Outros métodos podem seguir o mesmo padrão
 export default {
-  createConta,getContasUser
+  createConta,
+  getContasUser,
+  getAllContas,
+  updateStatus
 };

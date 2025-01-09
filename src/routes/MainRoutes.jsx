@@ -4,6 +4,7 @@ import { lazy } from 'react';
 import Loadable from 'components/Loadable';
 import Dashboard from 'layout/Dashboard';
 import { element } from 'prop-types';
+import AdminContas from 'pages/contas/adminIndex';
 
 const Color = Loadable(lazy(() => import('pages/component-overview/color')));
 const Typography = Loadable(lazy(() => import('pages/component-overview/typography')));
@@ -43,6 +44,10 @@ const MainRoutes = {
         {
           path:'pagar',
           element: <ContasAPagar/>
+        },
+        {
+          path:'admin',
+          element: <AdminContas/>
         }
       ]
     },

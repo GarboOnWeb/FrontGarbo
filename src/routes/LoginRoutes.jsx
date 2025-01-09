@@ -21,7 +21,11 @@ const LoginRoutes = {
     {
       path: '/register',
       element: <AuthRegister />
-    }
+    },
+    {
+      path: '/', // Redireciona a rota raiz para login
+      element: <AuthLogin />,
+    },
   ]
 };
 

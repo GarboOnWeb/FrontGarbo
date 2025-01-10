@@ -20,6 +20,9 @@ import ReportAreaChart from './ReportAreaChart';
 import UniqueVisitorCard from './UniqueVisitorCard';
 import SaleReportCard from './SaleReportCard';
 import OrdersTable from './OrdersTable';
+import React, { useState, useEffect } from 'react';
+import { getVendasLoja, getProdutosLoja, getMetasLoja } from '../../api/VendasLoja';
+
 
 // assets
 import GiftOutlined from '@ant-design/icons/GiftOutlined';
@@ -50,6 +53,50 @@ const actionSX = {
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
 
 export default function DashboardDefault() {
+
+  const [metaData, setMetaData] = useState([]);
+  const [productData, setProductData] = useState([]);
+  const [vendaData, setVendaData] = useState([]);
+  const [totalVendido, setTotalVendido] = useState(0);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const ciclo = 16;
+      const ano = 2024;
+      // const meta = await getMetasLoja(ciclo, ano);
+      // const products = await getProdutosLoja(ciclo, ano);
+      // const vendas = await getVendasLoja(ciclo, ano);
+
+      // setMetaData(meta);
+      // setProductData(products);
+      // setVendaData(vendas);
+      try {
+        const vendas = await getVendasLoja(ciclo, ano);
+  
+        console.log('Vendas recebidas:', vendas); // Verifique os dados recebidos
+  
+        // Verifica se "vendas" é um array e soma o campo "valor"
+        if (Array.isArray(vendas) && vendas.length > 0) {
+          const total = vendas.reduce((acc, venda) => {
+            const valor = parseFloat(venda.valor); // Usa o campo correto "valor"
+            return acc + (isNaN(valor) ? 0 : valor); // Adiciona apenas valores válidos
+          }, 0);
+  
+          console.log('Total Calculado:', total); // Log do total calculado
+          setTotalVendido(total); // Atualiza o estado com o total
+        } else {
+          console.warn('Dados de vendas inválidos ou vazios:', vendas);
+          setTotalVendido(0); // Define 0 como valor padrão
+        }
+      } catch (error) {
+        console.error('Erro ao buscar vendas:', error);
+        setTotalVendido(0); // Define 0 como fallback em caso de erro
+      }
+    };
+  
+    fetchData();
+  }, []);
+
   return (
     <Grid container rowSpacing={4.5} columnSpacing={2.75}>
       {/* row 1 */}
@@ -57,7 +104,12 @@ export default function DashboardDefault() {
         <Typography variant="h5">Dashboard</Typography>
       </Grid>
       <Grid item xs={12} sm={6} md={4} lg={3}>
-        <AnalyticEcommerce title="Total Page Views" count="4,42,236" percentage={59.3} extra="35,000" />
+      <AnalyticEcommerce
+            title="Valor total vendido"
+            count={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalVendido)} // Formatação em reais
+            percentage={59.3}
+            extra="35,000"
+          />
       </Grid>
       <Grid item xs={12} sm={6} md={4} lg={3}>
         <AnalyticEcommerce title="Total Users" count="78,250" percentage={70.5} extra="8,900" />

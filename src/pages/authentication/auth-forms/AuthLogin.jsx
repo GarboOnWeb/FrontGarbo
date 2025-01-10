@@ -16,6 +16,7 @@ import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { login } from 'api/Auth';
 
 // third party
 import * as Yup from 'yup';
@@ -42,54 +43,21 @@ export default function AuthLogin({ isDemo = false }) {
   const handleMouseDownPassword = (event) => {
     event.preventDefault();
   };
-
-
   const handleLogin = async (values, setSubmitting, setErrors) => {
-    try {
-      const response = await fetch('http://localhost:8080/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: values.email,
-          password: values.password,
-        }),
-      });
+    const result = await login(values.email, values.password);
   
-      const data = await response.json();
-      console.log('Resposta da API:', data); // Log da resposta para depuração
-  
-      if (response.ok) {
-        // Salvar o token e outros dados no localStorage
-        if (data.token) {
-          localStorage.setItem('authToken', data.token); // Salva o token
-          localStorage.setItem('userRole', data.role);   // Salva a role
-          localStorage.setItem('userSetor', data.setor); // Salva o setor
-        } else {
-          console.warn('Token não encontrado na resposta');
-        }
-  
-        // Redirecionar para o dashboard ou outra página específica
-        if (data.role === 'admin') {
-          window.location.href = '/garbo/dashboard/default';
-
-        } else {
-          window.location.href = '/garbo/dashboard/default'; // Certifique-se de que o caminho está correto
-        }
+    if (result.success) {
+      if (result.role === 'admin') {
+        window.location.href = '/garbo/dashboard/default';
       } else {
-        // Exibir erro retornado pela API
-        setErrors({ submit: data.message || 'Erro ao fazer login' });
+        window.location.href = '/garbo/dashboard/default';
       }
-    } catch (error) {
-      console.error('Erro na autenticação:', error);
-      setErrors({ submit: 'Erro ao conectar-se à API. Tente novamente.' });
-    } finally {
-      setSubmitting(false);
+    } else {
+      setErrors({ submit: result.message });
     }
-  };
   
-
+    setSubmitting(false);
+  };
 
   return (
     <>

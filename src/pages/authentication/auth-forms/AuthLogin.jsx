@@ -46,7 +46,6 @@ export default function AuthLogin({ isDemo = false }) {
 
   const handleLogin = async (values, setSubmitting, setErrors) => {
     try {
-      // Substitua pela URL da sua API de login
       const response = await fetch('http://localhost:8080/auth/login', {
         method: 'POST',
         headers: {
@@ -57,30 +56,31 @@ export default function AuthLogin({ isDemo = false }) {
           password: values.password,
         }),
       });
-
+  
       const data = await response.json();
-
+      console.log('Resposta da API:', data); // Log da resposta para depuração
+  
       if (response.ok) {
         // Salvar o token e outros dados no localStorage
         if (data.token) {
-            localStorage.setItem('authToken', data.token); // Salva o token
-            localStorage.setItem('userRole', data.role);   // Salva a role (admin, user, etc.)
-            localStorage.setItem('userSetor', data.setor); // Salva o setor
+          localStorage.setItem('authToken', data.token); // Salva o token
+          localStorage.setItem('userRole', data.role);   // Salva a role
+          localStorage.setItem('userSetor', data.setor); // Salva o setor
         } else {
-            console.warn('Token não encontrado na resposta');
+          console.warn('Token não encontrado na resposta');
         }
-    
+  
         // Redirecionar para o dashboard ou outra página específica
-        console.log('Login bem-sucedido:', data);
         if (data.role === 'admin') {
-            window.location.href = '/garbo';
+          window.location.href = '/garbo/dashboard/default';
+
         } else {
-            window.location.href = '/garbo';
+          window.location.href = '/garbo/dashboard/default'; // Certifique-se de que o caminho está correto
         }
-    } else {
+      } else {
         // Exibir erro retornado pela API
         setErrors({ submit: data.message || 'Erro ao fazer login' });
-    }
+      }
     } catch (error) {
       console.error('Erro na autenticação:', error);
       setErrors({ submit: 'Erro ao conectar-se à API. Tente novamente.' });
@@ -88,6 +88,7 @@ export default function AuthLogin({ isDemo = false }) {
       setSubmitting(false);
     }
   };
+  
 
 
   return (

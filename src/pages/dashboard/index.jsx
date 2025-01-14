@@ -11,6 +11,9 @@ import ListItemText from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
 
 // project import
 import MainCard from 'components/MainCard';
@@ -21,7 +24,7 @@ import UniqueVisitorCard from './UniqueVisitorCard';
 import SaleReportCard from './SaleReportCard';
 import OrdersTable from './OrdersTable';
 import React, { useState, useEffect } from 'react';
-import { getVendasLoja, getProdutosLoja, getMetasLoja } from '../../api/VendasLoja';
+import { getVendasLoja, getProdutosLoja, getMetasLoja, getDashboardLoja, getLojas } from '../../api/VendasLoja';
 
 
 // assets
@@ -53,66 +56,139 @@ const actionSX = {
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
 
 export default function DashboardDefault() {
-
-  const [metaData, setMetaData] = useState([]);
-  const [productData, setProductData] = useState([]);
-  const [vendaData, setVendaData] = useState([]);
   const [totalVendido, setTotalVendido] = useState(0);
+  const [totalVendidoAnt, setTotalVendidoAnt] = useState(0);
+  const [ticketMedio, setTicketMedio] = useState(0);
+  const [ticketMedioAnt, setTicketMedioAnt] = useState(0);
+  const [porcentagemFaturamento, setPorcentagemFaturamento] = useState(0);
+  const [porcentagemTicket, setPorcentagemTicket] = useState(0);
+
+  const [selectedCiclo, setSelectedCiclo] = useState(1);
+  const [selectedAno, setSelectedAno] = useState(new Date().getFullYear());
+  const [selectedLoja, setSelectedLoja] = useState('');
+  const [lojas, setLojas] = useState([]); // Adicione o estado para as lojas
+
+  // Função para buscar as lojas
+  const fetchLojas = async () => {
+    try {
+      const response = await getLojas(); // Chamada à API para buscar as lojas
+      setLojas(response); // Atualize o estado com a lista de lojas
+    } catch (error) {
+      console.error('Erro ao buscar lojas:', error);
+    }
+  };
+
+  // Função para buscar os dados do dashboard
+  const fetchData = async (ciclo, ano, loja) => {
+    try {
+      const vendas = await getDashboardLoja(ciclo, ano, loja);
+
+      console.log('Vendas recebidas:', vendas);
+
+      const total = vendas.realizado || 0;
+      const totalAnt = vendas.realizadoAnoAnterior || 0;
+      const ticketMedio = vendas.ticketMedio || 0;
+      const ticketMedioAnt = vendas.ticketMedioAnoAnterior || 0;
+
+      const porcentagemFaturamento =
+        totalAnt !== 0 ? ((total - totalAnt) / totalAnt) * 100 : 0;
+      const porcentagemTicket =
+        ticketMedioAnt !== 0 ? ((ticketMedio - ticketMedioAnt) / ticketMedioAnt) * 100 : 0;
+
+      setTotalVendido(total);
+      setTotalVendidoAnt(totalAnt);
+      setTicketMedio(ticketMedio);
+      setTicketMedioAnt(ticketMedioAnt);
+      setPorcentagemFaturamento(porcentagemFaturamento);
+      setPorcentagemTicket(porcentagemTicket);
+    } catch (error) {
+      console.error('Erro ao buscar vendas:', error);
+      setTotalVendido(0);
+      setTotalVendidoAnt(0);
+      setTicketMedio(0);
+      setTicketMedioAnt(0);
+      setPorcentagemFaturamento(0);
+      setPorcentagemTicket(0);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      const ciclo = 16;
-      const ano = 2024;
-      // const meta = await getMetasLoja(ciclo, ano);
-      // const products = await getProdutosLoja(ciclo, ano);
-      // const vendas = await getVendasLoja(ciclo, ano);
-
-      // setMetaData(meta);
-      // setProductData(products);
-      // setVendaData(vendas);
-      try {
-        const vendas = await getVendasLoja(ciclo, ano);
-  
-        console.log('Vendas recebidas:', vendas); // Verifique os dados recebidos
-  
-        // Verifica se "vendas" é um array e soma o campo "valor"
-        if (Array.isArray(vendas) && vendas.length > 0) {
-          const total = vendas.reduce((acc, venda) => {
-            const valor = parseFloat(venda.valor); // Usa o campo correto "valor"
-            return acc + (isNaN(valor) ? 0 : valor); // Adiciona apenas valores válidos
-          }, 0);
-  
-          console.log('Total Calculado:', total); // Log do total calculado
-          setTotalVendido(total); // Atualiza o estado com o total
-        } else {
-          console.warn('Dados de vendas inválidos ou vazios:', vendas);
-          setTotalVendido(0); // Define 0 como valor padrão
-        }
-      } catch (error) {
-        console.error('Erro ao buscar vendas:', error);
-        setTotalVendido(0); // Define 0 como fallback em caso de erro
-      }
-    };
-  
-    fetchData();
+    fetchLojas(); // Busca as lojas ao carregar o componente
   }, []);
+
+  useEffect(() => {
+    fetchData(selectedCiclo, selectedAno, selectedLoja);
+  }, [selectedCiclo, selectedAno, selectedLoja]);
+
 
   return (
     <Grid container rowSpacing={4.5} columnSpacing={2.75}>
-      {/* row 1 */}
-      <Grid item xs={12} sx={{ mb: -2.25 }}>
-        <Typography variant="h5">Dashboard</Typography>
+      {/* Filtros */}
+      <Grid item xs={12}>
+        <Box sx={{ mb: 3 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={6} sm={3}>
+              <Typography variant="subtitle1">Selecione o Ciclo:</Typography>
+              <Select
+                value={selectedCiclo}
+                onChange={(e) => setSelectedCiclo(e.target.value)}
+                fullWidth
+              >
+                {Array.from({ length: 17 }, (_, i) => i + 1).map((ciclo) => (
+                  <MenuItem key={ciclo} value={ciclo}>
+                    Ciclo {ciclo}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Grid>
+            <Grid item xs={6} sm={3}>
+              <Typography variant="subtitle1">Selecione o Ano:</Typography>
+              <TextField
+                type="number"
+                value={selectedAno}
+                onChange={(e) => setSelectedAno(Number(e.target.value))}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={6} sm={3}>
+              <Typography variant="subtitle1">Selecione a Loja:</Typography>
+              <Select
+                value={selectedLoja}
+                onChange={(e) => setSelectedLoja(e.target.value)}
+                fullWidth
+              >
+                <MenuItem value="">Todas as Lojas</MenuItem>
+                {lojas.map((loja) => (
+                  <MenuItem key={loja.loja_id} value={loja.loja_id}>
+                    Loja {loja.loja_id}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Grid>
+          </Grid>
+        </Box>
+      </Grid>
+
+      {/* Cards */}
+      <Grid item xs={12} sm={6} md={4} lg={3}>
+        <AnalyticEcommerce
+          title="Vendas"
+          count={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalVendido)}
+          percentage={parseFloat(porcentagemFaturamento.toFixed(2))}
+          extra={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalVendido - totalVendidoAnt)}
+          isLoss={porcentagemFaturamento < 0}
+          color={porcentagemFaturamento < 0 ? 'error' : 'success'}
+        />
       </Grid>
       <Grid item xs={12} sm={6} md={4} lg={3}>
-      <AnalyticEcommerce
-            title="Valor total vendido"
-            count={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalVendido)} // Formatação em reais
-            percentage={59.3}
-            extra="35,000"
-          />
-      </Grid>
-      <Grid item xs={12} sm={6} md={4} lg={3}>
-        <AnalyticEcommerce title="Total Users" count="78,250" percentage={70.5} extra="8,900" />
+        <AnalyticEcommerce
+          title="Ticket Médio"
+          count={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(ticketMedio)}
+          percentage={parseFloat(porcentagemTicket.toFixed(2))}
+          extra={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(ticketMedio - ticketMedioAnt)}
+          isLoss={porcentagemTicket < 0}
+          color={porcentagemTicket < 0 ? 'error' : 'success'}
+        />
       </Grid>
       <Grid item xs={12} sm={6} md={4} lg={3}>
         <AnalyticEcommerce title="Total Order" count="18,800" percentage={27.4} isLoss color="warning" extra="1,943" />

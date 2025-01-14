@@ -45,7 +45,7 @@ export default function AuthLogin({ isDemo = false }) {
   };
   const handleLogin = async (values, setSubmitting, setErrors) => {
     const result = await login(values.email, values.password);
-  
+
     if (result.success) {
       if (result.role === 'admin') {
         window.location.href = '/garbo/dashboard/default';
@@ -55,7 +55,7 @@ export default function AuthLogin({ isDemo = false }) {
     } else {
       setErrors({ submit: result.message });
     }
-  
+
     setSubmitting(false);
   };
 

@@ -38,14 +38,21 @@ const fetchData = async (endpoint, params) => {
     }
 };
 
-export const getVendasLoja = async (ciclo, ano) => fetchData('/loja/venda', { ciclo, ano });
+export const getVendasLoja = async (ciclo, ano, loja) => fetchData('/loja/venda', { ciclo, ano, loja });
 
 export const getProdutosLoja = async (ciclo, ano) => fetchData('/loja/produtos', { ciclo, ano });
 
 export const getMetasLoja = async (ciclo, ano) => fetchData('/loja/metas', { ciclo, ano });
 
+export const getDashboardLoja = async (ciclo, ano, loja) => fetchData('/loja/dashboard', { ciclo, ano, loja });
+
+export const getLojas= async () => fetchData('/loja/lojas');
+
 export default {
     getVendasLoja,
     getProdutosLoja,
     getMetasLoja,
+    getDashboardLoja,
+    getLojas,
 };
+

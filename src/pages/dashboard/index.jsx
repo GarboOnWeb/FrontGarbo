@@ -71,6 +71,7 @@ export default function DashboardDefault() {
   const [selectedAno, setSelectedAno] = useState(null); // Inicialmente `null`
   const [selectedLoja, setSelectedLoja] = useState('');
   const [lojas, setLojas] = useState([]);
+  const [tendencia, setTendencia] = useState(0);
 
   const fetchCicloAtual = async () => {
     try {
@@ -104,11 +105,52 @@ export default function DashboardDefault() {
       const porcentagemFaturamento =
         totalAnt !== 0 ? ((total - totalAnt) / totalAnt) * 100 : 0;
       const porcentagemTicket =
-        ticketMedioAnt !== 0 ? ((ticketMedio - ticketMedioAnt) / ticketMedioAnt) * 100 : 0;
+        ticketMedioAnt !== 0
+          ? ((ticketMedio - ticketMedioAnt) / ticketMedioAnt) * 100
+          : 0;
       const produtividade = vendas.produtividade || 0;
       const produtividadeAnt = vendas.produtividadeAnoAnterior || 0;
       const produtividadePorcentagem =
-        produtividadeAnt !== 0 ? ((produtividade - produtividadeAnt) / produtividadeAnt) * 100 : 0;
+        produtividadeAnt !== 0
+          ? ((produtividade - produtividadeAnt) / produtividadeAnt) * 100
+          : 0;
+
+
+      // Certifique-se de que as datas sejam objetos Date
+      const dtInicio = new Date(vendas.dtInicio);
+      const dtFim = new Date(vendas.dtFim);
+
+      // Data de hoje
+      const dtHoje = new Date();
+      let tendencia = total;
+      if(dtHoje < dtFim){
+        // dtHoje = dtFim;
+        console.log("dtHoje < dtFim");
+      
+
+      // Constante para milissegundos em um dia
+      const MILISSEGUNDOS_POR_DIA = 24 * 60 * 60 * 1000;
+
+      // Cálculo de dias
+      const diasTotais = Math.floor((dtFim - dtInicio) / MILISSEGUNDOS_POR_DIA); // Total de dias entre início e fim
+      const diasApurados = Math.floor((dtHoje - dtInicio) / MILISSEGUNDOS_POR_DIA); // Dias já apurados até hoje
+      const diasRestantes = diasTotais - diasApurados; // Dias restantes até o fim
+
+
+
+      // Validação de intervalo de datas
+      if (diasTotais <= 0 || diasApurados < 0 || diasRestantes < 0) {
+        throw new Error("Intervalo de datas inválido ou fora do período permitido.");
+      }
+
+      console.log("diasTotais: " + diasTotais);
+      console.log("diasApurados: " + diasApurados);
+      console.log("diasRestantes: " + diasRestantes);
+
+      tendencia = (total / diasApurados) * diasTotais;
+      console.log("total: " + total);
+      console.log("tendencia: " + tendencia);
+    }
 
       setTotalVendido(total);
       setTotalVendidoAnt(totalAnt);
@@ -119,6 +161,7 @@ export default function DashboardDefault() {
       setProdutividade(produtividade);
       setProdutividadeAnt(produtividadeAnt);
       setProdutividadePorcentagem(produtividadePorcentagem);
+      setTendencia(tendencia);
     } catch (error) {
       console.error('Erro ao buscar vendas:', error);
     } finally {
@@ -152,7 +195,7 @@ export default function DashboardDefault() {
         <Grid item xs={12}>
           <Box sx={{ mb: 3 }}>
             <Grid container spacing={2}>
-            <Grid item xs={6} sm={3}>
+              <Grid item xs={6} sm={3}>
                 <Typography variant="subtitle1">Selecione o Ciclo:</Typography>
                 <Select
                   value={selectedCiclo || ''}
@@ -225,7 +268,14 @@ export default function DashboardDefault() {
             extra={parseFloat(produtividadeAnt.toFixed(2))} />
         </Grid>
         <Grid item xs={12} sm={6} md={4} lg={3}>
-          <AnalyticEcommerce title="Total Sales" count="$35,078" percentage={27.4} isLoss color="warning" extra="$20,395" />
+          <AnalyticEcommerce
+            title="Tendencia"
+            count={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(tendencia)}
+            // percentage={27.4}
+            // isLoss={false}
+            // color="warning"
+            // extra="$20,395" 
+            />
         </Grid>
 
         <Grid item md={8} sx={{ display: { sm: 'none', md: 'block', lg: 'none' } }} />

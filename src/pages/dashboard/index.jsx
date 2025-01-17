@@ -143,13 +143,8 @@ export default function DashboardDefault() {
         throw new Error("Intervalo de datas inválido ou fora do período permitido.");
       }
 
-      console.log("diasTotais: " + diasTotais);
-      console.log("diasApurados: " + diasApurados);
-      console.log("diasRestantes: " + diasRestantes);
 
       tendencia = (total / diasApurados) * diasTotais;
-      console.log("total: " + total);
-      console.log("tendencia: " + tendencia);
     }
 
       setTotalVendido(total);
@@ -265,7 +260,7 @@ export default function DashboardDefault() {
             percentage={parseFloat(produtividadePorcentagem.toFixed(2))}
             isLoss={produtividadePorcentagem < 0}
             color={produtividadePorcentagem < 0 ? 'error' : 'success'}
-            extra={parseFloat(produtividadeAnt.toFixed(2))} />
+            extra={parseFloat(( produtividade - produtividadeAnt ).toFixed(2))} />
         </Grid>
         <Grid item xs={12} sm={6} md={4} lg={3}>
           <AnalyticEcommerce

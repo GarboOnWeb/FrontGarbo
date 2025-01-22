@@ -1,13 +1,7 @@
-import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
-
-// material-ui
 import { useTheme } from '@mui/material/styles';
-
-// third-party
 import ReactApexChart from 'react-apexcharts';
 
-// chart options
 const areaChartOptions = {
   chart: {
     height: 450,
@@ -16,99 +10,87 @@ const areaChartOptions = {
       show: false
     }
   },
-  dataLabels: {
-    enabled: false
-  },
   stroke: {
     curve: 'smooth',
     width: 2
   },
+  markers: {
+    size: 4,
+    colors: ['#8884d8', '#82ca9d'],
+    strokeWidth: 2,
+    strokeColors: ['#8884d8', '#82ca9d']
+  },
+  dataLabels: {
+    enabled: false
+  },
+  tooltip: {
+    enabled: true,
+    y: {
+      formatter: (value) =>
+        new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value) // Formata em R$
+    }
+  },
   grid: {
-    strokeDashArray: 0
+    borderColor: '#e0e0e0'
   }
 };
 
-// ==============================|| INCOME AREA CHART ||============================== //
-
-export default function IncomeAreaChart({ slot }) {
+export default function IncomeAreaChart({ valoresPorDia }) {
   const theme = useTheme();
-
-  const { primary, secondary } = theme.palette.text;
+  const { secondary } = theme.palette.text;
   const line = theme.palette.divider;
 
   const [options, setOptions] = useState(areaChartOptions);
+  const [series, setSeries] = useState([]);
 
   useEffect(() => {
+    const categorias = valoresPorDia.map((venda) => venda.data);
+
     setOptions((prevState) => ({
       ...prevState,
-      colors: [theme.palette.primary.main, theme.palette.primary[700]],
+      colors: [theme.palette.primary.main, theme.palette.secondary.main],
       xaxis: {
-        categories:
-          slot === 'month'
-            ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-            : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        categories: categorias,
         labels: {
+          formatter: (value) => {
+            const date = new Date(value);
+            return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1)
+              .toString()
+              .padStart(2, '0')}/${date.getFullYear()}`;
+          },
+          rotate: -45,
           style: {
-            colors: [
-              secondary,
-              secondary,
-              secondary,
-              secondary,
-              secondary,
-              secondary,
-              secondary,
-              secondary,
-              secondary,
-              secondary,
-              secondary,
-              secondary
-            ]
+            fontSize: '12px',
+            colors: categorias.map(() => secondary)
           }
         },
         axisBorder: {
           show: true,
           color: line
-        },
-        tickAmount: slot === 'month' ? 11 : 7
+        }
       },
       yaxis: {
         labels: {
+          formatter: (value) =>
+            new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value), // Formata em R$
           style: {
             colors: [secondary]
           }
         }
-      },
-      grid: {
-        borderColor: line
       }
     }));
-  }, [primary, secondary, line, theme, slot]);
 
-  const [series, setSeries] = useState([
-    {
-      name: 'Page Views',
-      data: [0, 86, 28, 115, 48, 210, 136]
-    },
-    {
-      name: 'Sessions',
-      data: [0, 43, 14, 56, 24, 105, 68]
-    }
-  ]);
-
-  useEffect(() => {
     setSeries([
       {
-        name: 'Page Views',
-        data: slot === 'month' ? [76, 85, 101, 98, 87, 105, 91, 114, 94, 86, 115, 35] : [31, 40, 28, 51, 42, 109, 100]
+        name: 'Atual',
+        data: valoresPorDia.map((venda) => venda.atual)
       },
       {
-        name: 'Sessions',
-        data: slot === 'month' ? [110, 60, 150, 35, 60, 36, 26, 45, 65, 52, 53, 41] : [11, 32, 45, 32, 34, 52, 41]
+        name: 'Ano Anterior',
+        data: valoresPorDia.map((venda) => venda.anterior)
       }
     ]);
-  }, [slot]);
+  }, [valoresPorDia, theme]);
 
   return <ReactApexChart options={options} series={series} type="area" height={450} />;
 }
-
-IncomeAreaChart.propTypes = { slot: PropTypes.string };

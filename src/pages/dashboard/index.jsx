@@ -72,6 +72,8 @@ export default function DashboardDefault() {
   const [selectedLoja, setSelectedLoja] = useState('');
   const [lojas, setLojas] = useState([]);
   const [tendencia, setTendencia] = useState(0);
+  const [dadosGrafico, setDadosGrafico] = useState([]);
+
 
   const fetchCicloAtual = async () => {
     try {
@@ -93,68 +95,161 @@ export default function DashboardDefault() {
       console.error('Erro ao buscar lojas:', error);
     }
   };
+  const calcularRealizadoEValoresMedios = (valoresPorDia, valoresAnoAnteriorPorDia, dtInicio, dtFim) => {
+    const inicio = new Date(dtInicio);
+    const fimOriginal = new Date(dtFim);
+    const hoje = new Date();
+
+    // Ajustar o fim do período
+    let fim = hoje < fimOriginal ? hoje : fimOriginal;
+
+    // Filtrar os valores para o período atual
+    const valoresFiltradosAtual = valoresPorDia.filter((venda) => {
+      const dataVenda = new Date(venda.data);
+      return dataVenda >= inicio && dataVenda <= fim;
+    });
+
+
+
+    const realizadoAtual = valoresFiltradosAtual.reduce((soma, venda) => soma + (venda.totalValor || 0), 0);
+
+    const vendasAtual = valoresFiltradosAtual.length;
+
+    const ticketMedioT = valoresFiltradosAtual.reduce((soma, venda) => soma + (venda.ticketMedio || 0), 0);
+    const ticketMedioAtual = vendasAtual !== 0 ? ticketMedioT / vendasAtual : 0;
+
+    const produtividadeAtual = valoresFiltradosAtual.reduce((soma, venda) => soma + (venda.produtividade || 0), 0);
+    const produtividadeMediaAtual = vendasAtual !== 0 ? produtividadeAtual / vendasAtual : 0;
+
+    // Calcular o número de dias no período atual
+    const diasPeriodoAtual = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
+
+    // Filtrar os valores para o mesmo período no ano anterior
+    const valoresFiltradosAnoAnterior = valoresAnoAnteriorPorDia.slice(0, diasPeriodoAtual);
+
+    const realizadoAnoAnterior = valoresFiltradosAnoAnterior.reduce((soma, venda) => soma + (venda.totalValor || 0), 0);
+
+    const vendasAnoAnterior = valoresFiltradosAnoAnterior.length;
+    const ticketMedioTAnt = valoresFiltradosAnoAnterior.reduce((soma, venda) => soma + (venda.ticketMedio || 0), 0);
+
+    const ticketMedioAnoAnterior = vendasAnoAnterior !== 0 ? ticketMedioTAnt / vendasAnoAnterior : 0;
+
+    const produtividadeAnoAnterior = valoresFiltradosAnoAnterior.reduce(
+      (soma, venda) => soma + (venda.produtividade || 0),
+      0
+    );
+    const produtividadeMediaAnoAnterior = vendasAnoAnterior !== 0 ? produtividadeAnoAnterior / vendasAnoAnterior : 0;
+    console.log("Realizado Atual:", realizadoAtual);
+    console.log("Número de Vendas Atual:", vendasAtual);
+    console.log("Ticket Médio Atual:", ticketMedioAtual);
+
+    return {
+      realizadoAtual,
+      realizadoAnoAnterior,
+      ticketMedioAtual,
+      ticketMedioAnoAnterior,
+      produtividadeAtual,
+      produtividadeAnoAnterior,
+      produtividadeMediaAtual,
+      produtividadeMediaAnoAnterior,
+    };
+  };
+
+  const prepararDadosPorDia = (valoresPorDia, valoresAnoAnteriorPorDia) => {
+    const dadosCombinados = valoresPorDia.map((atual, index) => {
+      const anterior = valoresAnoAnteriorPorDia[index] || {};
+      return {
+        data: atual.data, // Data atual
+        atual: atual.totalValor || 0, // Valor do período atual
+        anterior: anterior.totalValor || 0, // Valor do mesmo período no ano anterior
+      };
+    });
+    return dadosCombinados;
+  };
 
   const fetchData = async (ciclo, ano, loja) => {
     setIsLoading(true); // Início do carregamento
     try {
       const vendas = await getDashboardLoja(ciclo, ano, loja);
-      const total = vendas.realizado || 0;
-      const totalAnt = vendas.realizadoAnoAnterior || 0;
-      const ticketMedio = vendas.ticketMedio || 0;
-      const ticketMedioAnt = vendas.ticketMedioAnoAnterior || 0;
+      const dtInicio = vendas.dtInicio;
+      const dtFim = vendas.dtFim;
+
+      const {
+        realizadoAtual,
+        realizadoAnoAnterior,
+        ticketMedioAtual,
+        ticketMedioAnoAnterior,
+        produtividadeAtual,
+        produtividadeAnoAnterior,
+        produtividadeMediaAtual,
+        produtividadeMediaAnoAnterior,
+      } = calcularRealizadoEValoresMedios(
+        vendas.valoresPorDia,
+        vendas.valoresAnoAnteriorPorDia,
+        dtInicio,
+        dtFim
+      );
+
+      const dadosFormatados = prepararDadosPorDia(
+        vendas.valoresPorDia,
+        vendas.valoresAnoAnteriorPorDia
+      );
+
+      setDadosGrafico(dadosFormatados);
       const porcentagemFaturamento =
-        totalAnt !== 0 ? ((total - totalAnt) / totalAnt) * 100 : 0;
-      const porcentagemTicket =
-        ticketMedioAnt !== 0
-          ? ((ticketMedio - ticketMedioAnt) / ticketMedioAnt) * 100
+        realizadoAnoAnterior !== 0
+          ? ((realizadoAtual - realizadoAnoAnterior) / realizadoAnoAnterior) * 100
           : 0;
-      const produtividade = vendas.produtividade || 0;
+
+      const porcentagemTicket =
+        ticketMedioAnoAnterior !== 0
+          ? ((ticketMedioAtual - ticketMedioAnoAnterior) / ticketMedioAnoAnterior) * 100
+          : 0;
       const produtividadeAnt = vendas.produtividadeAnoAnterior || 0;
       const produtividadePorcentagem =
-        produtividadeAnt !== 0
-          ? ((produtividade - produtividadeAnt) / produtividadeAnt) * 100
+        produtividadeMediaAnoAnterior !== 0
+          ? ((produtividadeMediaAtual - produtividadeMediaAnoAnterior) / produtividadeMediaAnoAnterior) * 100
           : 0;
 
-
-      // Certifique-se de que as datas sejam objetos Date
-      const dtInicio = new Date(vendas.dtInicio);
-      const dtFim = new Date(vendas.dtFim);
-
+      // console.log("Produtividade %: ", produtividadePorcentagem);
       // Data de hoje
-      const dtHoje = new Date();
-      let tendencia = total;
-      if(dtHoje < dtFim){
+      const dtHoje = new Date(); // Objeto Date para a data de hoje
+      const dtFimC = new Date(vendas.dtFim); // Convertendo dtFim dinamicamente para Date
+      let tendencia = realizadoAtual;
+      if (dtHoje < dtFimC) {
         // dtHoje = dtFim;
         console.log("dtHoje < dtFim");
-      
 
-      // Constante para milissegundos em um dia
-      const MILISSEGUNDOS_POR_DIA = 24 * 60 * 60 * 1000;
+        const dtInicioC = new Date(vendas.dtInicio);
+        // Constante para milissegundos em um dia
+        const MILISSEGUNDOS_POR_DIA = 24 * 60 * 60 * 1000;
 
-      // Cálculo de dias
-      const diasTotais = Math.floor((dtFim - dtInicio) / MILISSEGUNDOS_POR_DIA); // Total de dias entre início e fim
-      const diasApurados = Math.floor((dtHoje - dtInicio) / MILISSEGUNDOS_POR_DIA); // Dias já apurados até hoje
-      const diasRestantes = diasTotais - diasApurados; // Dias restantes até o fim
+        // Cálculo de dias
+        const diasTotais = Math.floor((dtFimC - dtInicioC) / MILISSEGUNDOS_POR_DIA); // Total de dias entre início e fim
+        const diasApurados = Math.floor((dtHoje - dtInicioC) / MILISSEGUNDOS_POR_DIA); // Dias já apurados até hoje
+        const diasRestantes = diasTotais - diasApurados; // Dias restantes até o fim
 
 
 
-      // Validação de intervalo de datas
-      if (diasTotais <= 0 || diasApurados < 0 || diasRestantes < 0) {
-        throw new Error("Intervalo de datas inválido ou fora do período permitido.");
+        // Validação de intervalo de datas
+        if (diasTotais <= 0 || diasApurados < 0 || diasRestantes < 0) {
+          throw new Error("Intervalo de datas inválido ou fora do período permitido.");
+        }
+
+        console.log("realizadoAtual: ", realizadoAtual);
+        console.log("diasApurados: ", diasApurados);
+        console.log("diasTotais: ", diasTotais);
+        tendencia = (realizadoAtual / diasApurados) * diasTotais;
       }
 
-
-      tendencia = (total / diasApurados) * diasTotais;
-    }
-
-      setTotalVendido(total);
-      setTotalVendidoAnt(totalAnt);
-      setTicketMedio(ticketMedio);
-      setTicketMedioAnt(ticketMedioAnt);
+      setTotalVendido(realizadoAtual);
+      setTotalVendidoAnt(realizadoAnoAnterior);
+      setTicketMedio(ticketMedioAtual);
+      setTicketMedioAnt(ticketMedioAnoAnterior);
       setPorcentagemFaturamento(porcentagemFaturamento);
       setPorcentagemTicket(porcentagemTicket);
-      setProdutividade(produtividade);
-      setProdutividadeAnt(produtividadeAnt);
+      setProdutividade(produtividadeMediaAtual);
+      setProdutividadeAnt(produtividadeMediaAnoAnterior);
       setProdutividadePorcentagem(produtividadePorcentagem);
       setTendencia(tendencia);
     } catch (error) {
@@ -260,43 +355,24 @@ export default function DashboardDefault() {
             percentage={parseFloat(produtividadePorcentagem.toFixed(2))}
             isLoss={produtividadePorcentagem < 0}
             color={produtividadePorcentagem < 0 ? 'error' : 'success'}
-            extra={parseFloat(( produtividade - produtividadeAnt ).toFixed(2))} />
+            extra={parseFloat((produtividade - produtividadeAnt).toFixed(2))} />
         </Grid>
         <Grid item xs={12} sm={6} md={4} lg={3}>
           <AnalyticEcommerce
             title="Tendencia"
             count={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(tendencia)}
-            // percentage={27.4}
-            // isLoss={false}
-            // color="warning"
-            // extra="$20,395" 
-            />
+          // percentage={27.4}
+          // isLoss={false}
+          // color="warning"
+          // extra="$20,395" 
+          />
         </Grid>
 
         <Grid item md={8} sx={{ display: { sm: 'none', md: 'block', lg: 'none' } }} />
 
         {/* row 2 */}
         <Grid item xs={12} md={7} lg={8}>
-          <UniqueVisitorCard />
-        </Grid>
-        <Grid item xs={12} md={5} lg={4}>
-          <Grid container alignItems="center" justifyContent="space-between">
-            <Grid item>
-              <Typography variant="h5">Income Overview</Typography>
-            </Grid>
-            <Grid item />
-          </Grid>
-          <MainCard sx={{ mt: 2 }} content={false}>
-            <Box sx={{ p: 3, pb: 0 }}>
-              <Stack spacing={2}>
-                <Typography variant="h6" color="text.secondary">
-                  This Week Statistics
-                </Typography>
-                <Typography variant="h3">$7,650</Typography>
-              </Stack>
-            </Box>
-            <MonthlyBarChart />
-          </MainCard>
+          <UniqueVisitorCard valoresPorDia={dadosGrafico} />
         </Grid>
 
         {/* row 3 */}

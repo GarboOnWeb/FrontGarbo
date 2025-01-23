@@ -73,6 +73,16 @@ export default function DashboardDefault() {
   const [lojas, setLojas] = useState([]);
   const [tendencia, setTendencia] = useState(0);
   const [dadosGrafico, setDadosGrafico] = useState([]);
+  const [tempCiclo, setTempCiclo] = useState(null); // Estado temporário para o Ciclo
+  const [tempAno, setTempAno] = useState(null); // Estado temporário para o Ano
+  const [tempLoja, setTempLoja] = useState(''); // Estado temporário para a Loja
+
+  const aplicarFiltros = () => {
+    setSelectedCiclo(tempCiclo);
+    setSelectedAno(tempAno);
+    setSelectedLoja(tempLoja);
+  };
+
 
 
   const fetchCicloAtual = async () => {
@@ -284,13 +294,16 @@ export default function DashboardDefault() {
         {/* Filtros */}
         <Grid item xs={12}>
           <Box sx={{ mb: 3 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={6} sm={3}>
+            <Grid container rowSpacing={2} columnSpacing={2} alignItems="center">
+              <Grid item xs={12} sm={6} md={3}>
                 <Typography variant="subtitle1">Selecione o Ciclo:</Typography>
                 <Select
-                  value={selectedCiclo || ''}
-                  onChange={(e) => setSelectedCiclo(e.target.value)}
+                  value={tempCiclo || ''}
+                  onChange={(e) => setTempCiclo(e.target.value)} // Usa estado temporário
                   fullWidth
+                  sx={{
+                    height: "56px",
+                  }}
                 >
                   {Array.from({ length: 17 }, (_, i) => i + 1).map((ciclo) => (
                     <MenuItem key={ciclo} value={ciclo}>
@@ -299,20 +312,20 @@ export default function DashboardDefault() {
                   ))}
                 </Select>
               </Grid>
-              <Grid item xs={6} sm={3}>
+              <Grid item xs={12} sm={6} md={3}>
                 <Typography variant="subtitle1">Selecione o Ano:</Typography>
                 <TextField
                   type="number"
-                  value={selectedAno || ''}
-                  onChange={(e) => setSelectedAno(Number(e.target.value))}
+                  value={tempAno || ''}
+                  onChange={(e) => setTempAno(Number(e.target.value))} // Usa estado temporário
                   fullWidth
                 />
               </Grid>
-              <Grid item xs={6} sm={3}>
+              <Grid item xs={12} sm={6} md={3}>
                 <Typography variant="subtitle1">Selecione a Loja:</Typography>
                 <Select
-                  value={selectedLoja}
-                  onChange={(e) => setSelectedLoja(e.target.value)}
+                  value={tempLoja}
+                  onChange={(e) => setTempLoja(e.target.value)} // Usa estado temporário
                   fullWidth
                 >
                   <MenuItem value="">Todas as Lojas</MenuItem>
@@ -323,7 +336,20 @@ export default function DashboardDefault() {
                   ))}
                 </Select>
               </Grid>
+              <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center" alignItems="center">
+                <Button
+                  variant="contained"
+                  onClick={aplicarFiltros} // Chamará a função aplicarFiltros
+                  fullWidth
+                  sx={{
+                    height: "56px", // Ajusta a altura para ficar igual aos inputs
+                  }}
+                >
+                  Aplicar Filtro
+                </Button>
+              </Grid>
             </Grid>
+
           </Box>
         </Grid>
 

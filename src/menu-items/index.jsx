@@ -8,7 +8,7 @@ import support from './support';
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems = {
-  items: [getMenu(), pages]
+  items: [getMenu()]
 };
 
 export default menuItems;

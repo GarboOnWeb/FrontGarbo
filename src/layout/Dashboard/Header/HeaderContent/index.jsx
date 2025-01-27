@@ -6,12 +6,7 @@ import Box from '@mui/material/Box';
 
 // project import
 import Search from './Search';
-import Profile from './Profile';
-import Notification from './Notification';
 import MobileSection from './MobileSection';
-
-// project import
-import { GithubOutlined } from '@ant-design/icons';
 
 // ==============================|| HEADER - CONTENT ||============================== //
 
@@ -22,6 +17,7 @@ export default function HeaderContent() {
     <>
       {!downLG && <Search />}
       {downLG && <Box sx={{ width: '100%', ml: 1 }} />}
+      {/* 
       <IconButton
         component={Link}
         href="https://github.com/codedthemes/mantis-free-react-admin-template"
@@ -33,9 +29,10 @@ export default function HeaderContent() {
       >
         <GithubOutlined />
       </IconButton>
+      */}
 
-      <Notification />
-      {!downLG && <Profile />}
+      {/* <Notification /> */}
+      {/* {!downLG && <Profile />} */}
       {downLG && <MobileSection />}
     </>
   );

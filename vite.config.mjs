@@ -5,7 +5,7 @@ import jsconfigPaths from 'vite-jsconfig-paths';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
-  base: '/', // Base do site, ajuste para subdiretórios, ex.: '/garbo'
+  base: '/garbo', // Base do site, ajuste para subdiretórios, ex.: '/garbo'
   plugins: [
     react(),
     jsconfigPaths(),

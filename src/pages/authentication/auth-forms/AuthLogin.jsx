@@ -48,11 +48,11 @@ export default function AuthLogin({ isDemo = false }) {
 
     if (result.success) {
       if (result.role === 'admin') {
-        window.location.href = '/garbo/dashboard/default';
-        // window.location.href = '/dashboard/default';
+        // window.location.href = '/garbo/dashboard/default';
+        window.location.href = '/dashboard/default';
       } else {
-        window.location.href = '/garbo/dashboard/default';
-        // window.location.href = '/dashboard/default';
+        // window.location.href = '/garbo/dashboard/default';
+        window.location.href = '/dashboard/default';
       }
     } else {
       setErrors({ submit: result.message });

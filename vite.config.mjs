@@ -36,5 +36,8 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist' // Diretório de saída
+  },
+  rollupOptions: {
+    input: './index.html' // Ponto de entrada para o Vite
   }
 });

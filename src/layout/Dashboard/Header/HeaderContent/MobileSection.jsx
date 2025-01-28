@@ -77,7 +77,7 @@ export default function MobileSection() {
         popperOptions={{
           modifiers: [
             {
-              name: 'offset',
+              name: 'offset', 
               options: {
                 offset: [0, 9]
               }

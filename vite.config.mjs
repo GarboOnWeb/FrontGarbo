@@ -2,10 +2,22 @@ import path from 'path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import jsconfigPaths from 'vite-jsconfig-paths';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
-  base: '/', // Subdiretório do site
-  plugins: [react(), jsconfigPaths()],
+  base: '/', // Base do site, ajuste para subdiretórios, ex.: '/garbo'
+  plugins: [
+    react(),
+    jsconfigPaths(),
+    viteStaticCopy({
+      targets: [
+        {
+          src: '_redirects', // O arquivo na raiz do projeto
+          dest: '.' // Será copiado para a raiz do diretório `dist`
+        }
+      ]
+    })
+  ],
   define: {
     global: 'window'
   },
@@ -35,9 +47,6 @@ export default defineConfig({
     port: 3000
   },
   build: {
-    outDir: 'dist' // Diretório de saída
-  },
-  rollupOptions: {
-    input: './index.html' // Ponto de entrada para o Vite
+    outDir: 'dist' // Diretório de saída do build
   }
 });

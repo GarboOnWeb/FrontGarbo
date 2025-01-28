@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 import jsconfigPaths from 'vite-jsconfig-paths';
 
 export default defineConfig({
-  base: '/garbo', // Subdiretório do site
+  base: '/', // Subdiretório do site
   plugins: [react(), jsconfigPaths()],
   define: {
     global: 'window'

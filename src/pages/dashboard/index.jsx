@@ -26,7 +26,7 @@ import UniqueVisitorCard from './UniqueVisitorCard';
 import SaleReportCard from './SaleReportCard';
 import OrdersTable from './OrdersTable';
 import React, { useState, useEffect } from 'react';
-import { getVendasLoja, getProdutosLoja, getMetasLoja, getDashboardLoja, getLojas, getCicloAtual } from '../../api/VendasLoja';
+import { getVendasLoja, getProdutosLoja, getMetasLoja, getDashboardLoja, getLojas, getCicloAtual, getVendasLojaDf, getVendasSkinLoja } from '../../api/VendasLoja';
 
 
 // assets
@@ -37,6 +37,7 @@ import avatar1 from 'assets/images/users/avatar-1.png';
 import avatar2 from 'assets/images/users/avatar-2.png';
 import avatar3 from 'assets/images/users/avatar-3.png';
 import avatar4 from 'assets/images/users/avatar-4.png';
+import { ca } from 'date-fns/locale';
 
 // avatar style
 const avatarSX = {
@@ -69,6 +70,7 @@ export default function DashboardDefault() {
   const [produtividadePorcentagem, setProdutividadePorcentagem] = useState(0);
   const [selectedCiclo, setSelectedCiclo] = useState(null); // Inicialmente `null`
   const [selectedAno, setSelectedAno] = useState(null); // Inicialmente `null`
+  const [vendaLoja, setVendaLoja] = useState(null);
   const [selectedLoja, setSelectedLoja] = useState('');
   const [lojas, setLojas] = useState([]);
   const [tendencia, setTendencia] = useState(0);
@@ -94,6 +96,18 @@ export default function DashboardDefault() {
       }
     } catch (error) {
       console.error('Erro ao buscar ciclo atual:', error);
+    }
+  };
+
+
+  const fetchVendasLoja = async () => {
+    try{
+      const venda = await getVendasLojaDf();
+      if (venda){
+        setVendaLoja(venda)
+      }
+    }catch(error){
+      console.error('Erro a buscar vendas: ', error)
     }
   };
 

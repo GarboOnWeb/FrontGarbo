@@ -50,6 +50,10 @@ export const getLojas= async () => fetchData('/loja/lojas');
 
 export const getCicloAtual= async () => fetchData('/loja/cicloAtual');
 
+export const getVendasLojaDf= async (ciclo, ano) => fetchData('/loja/vendasloja', {ciclo, ano});
+
+export const getVendasSkinLoja= async (ciclo, ano) => fetchData('/loja/skin', { ciclo, ano});
+
 export default {
     getVendasLoja,
     getProdutosLoja,
@@ -57,5 +61,7 @@ export default {
     getDashboardLoja,
     getLojas,
     getCicloAtual,
+    getVendasLojaDf,
+    getVendasSkinLoja
 };
 
